@@ -1,18 +1,17 @@
 {
   "name": "01",
   "version": "0.1.0",
-
   "engines": {
     "node": "16.x",
     "npm": "8.x"
   },
-
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/user-event": "^13.5.0",
     "cors": "^2.8.5",
     "express": "^4.17.3",
+    "mongoose": "^6.2.6",
     "morgan": "^1.10.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "web-vitals": "^2.1.4"
@@ -22,7 +21,6 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  
   "description": "asd",
   "main": "src/index.js",
   "author": "",
