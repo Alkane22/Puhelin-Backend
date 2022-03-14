@@ -1,6 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+const pNumber = require('./models/numbers')
+const { response } = require('express')
 const app = express()
 
 morgan.token('body', (req) => JSON.stringify(req.body));
@@ -8,7 +12,6 @@ morgan.token('body', (req) => JSON.stringify(req.body));
 app.use(cors())
 app.use(express.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-
 
 let persons = [
   {
@@ -20,21 +23,6 @@ let persons = [
     name: "Ada Lovelace",
     number: "39-44-5323523",
     id: 2
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: 3
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-    id: 4
-  },
-  {
-    name: "Test Subject",
-    number: "040-123456",
-    id: 5
   }
 ]
 
@@ -45,70 +33,57 @@ app.get('/', (req, res) => {
 })
 
 app.get('/info', (req,res) => {
-  res.send('<p>Phone book has info of ' + persons.length + ' people</p><p>'+ new Date() +'</p>')
+  res.send('<p>Phone book has info of ' + pNumber.length + ' people</p><p>'+ new Date() +'</p>')
 })
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  pNumber.find({}).then(result => {
+    res.json(result)
+  })
+  //res.json(persons)
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-
-  const person = persons.find(person => {
-    //console.log(person.id, typeof person.id, id, typeof id)
-    return person.id === parseInt(id) //parseInt ei välttämättä ole ok sillä tää toimii nyt esim /api/persons/1asdasdasdasd :D
+  pNumber.findById(request.params.id).then(number => {
+    response.json(number)
   })
-
-  if (person){
-    response.json(person)
-  }else{
-    response.status(404).end()
-  }
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  
+  //const id = Number(request.params.id)
+  //persons = persons.filter(person => person.id !== id)
+  //pNumber.collection.deleteOne(number => number.id !== request.params.id)
+  try {
+    pNumber.deleteOne( { "id" : mongoose.Types.ObjectId(request.params.id) } )
+    .then(resp => {
+      console.log(resp)
+    })
+ } catch (e) {
+    console.log(e)
+ }
   response.status(204).end()
 })
-
-const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(n => n.id))
-    : 0
-  return maxId + 1
-}
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
 
   if (!body.name || !body.number) {
     return res.status(400).json({ 
-      error: 'name or number missing' 
+      error: 'content missing' 
     })
   }
 
-  if(persons.some(person => person.name === body.name)){
-    return res.status(400).json({
-      error: 'Phone book already contains ' + body.name
-    })
-  }
-
-  const person = {
+  const number = new pNumber({
     name: body.name,
     number: body.number,
-    id:  generateId()
-  }
-
-  persons = persons.concat(person)
-
-  //console.log(person)
-  res.json(person)
+  })
+  
+  number.save().then(response => {
+    res.json(response)
+  })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
