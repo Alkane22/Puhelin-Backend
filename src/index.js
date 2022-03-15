@@ -40,7 +40,19 @@ app.get('/api/persons/:id', (request, response, next) => {
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
+  //const body = request.body
+  const { name, number } = request.body
+
+  pNumber.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then(updatedNumber => {
+      response.json(updatedNumber)
+    })
+    .catch(error => next(error))
+  /*
   try {
     pNumber.updateOne(
       { "_id": mongoose.Types.ObjectId(request.params.id) },
@@ -54,6 +66,7 @@ app.put('/api/persons/:id', (request, response, next) => {
   } catch (e) {
     next(e)
   }
+  */
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
