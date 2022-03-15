@@ -4,11 +4,9 @@ const morgan = require('morgan')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const pNumber = require('./models/numbers')
-const { response } = require('express')
-const req = require('express/lib/request')
 const app = express()
 
-morgan.token('body', (req) => JSON.stringify(req.body));
+morgan.token('body', (req) => JSON.stringify(req.body))
 
 app.use(cors())
 app.use(express.json())
@@ -27,7 +25,6 @@ app.get('/api/persons', (req, res) => {
   pNumber.find({}).then(result => {
     res.json(result)
   })
-  //res.json(persons)
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -40,7 +37,6 @@ app.get('/api/persons/:id', (request, response, next) => {
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  //const body = request.body
   const { name, number } = request.body
 
   pNumber.findByIdAndUpdate(
@@ -52,26 +48,11 @@ app.put('/api/persons/:id', (request, response, next) => {
       response.json(updatedNumber)
     })
     .catch(error => next(error))
-  /*
-  try {
-    pNumber.updateOne(
-      { "_id": mongoose.Types.ObjectId(request.params.id) },
-      { $set: { number: body.number } })
-      .then(resp => {
-        if(resp.acknowledged === false){
-          response.status(400).json({error: "Validation error"})
-        }
-        response.status(204).end()
-      })
-  } catch (e) {
-    next(e)
-  }
-  */
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
   try {
-    pNumber.deleteOne({ "_id": mongoose.Types.ObjectId(request.params.id) })
+    pNumber.deleteOne({ '_id': mongoose.Types.ObjectId(request.params.id) })
       .then(resp => {
         console.log(resp)
         response.status(204).end()
