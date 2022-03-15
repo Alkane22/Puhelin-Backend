@@ -20,7 +20,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "description": "asd",
   "main": "src/index.js",
