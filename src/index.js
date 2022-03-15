@@ -30,64 +30,75 @@ app.get('/api/persons', (req, res) => {
   //res.json(persons)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   pNumber.findById(request.params.id)
     .then(number => {
       response.json(number)
     })
-    .catch(e => {
-      console.log(e)
-      response.status(400).send({ error: 'malformatted id' })
-    })
+    .catch(error => next(error))
 
 })
 
-app.put('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
   const body = request.body
   try {
-  pNumber.updateOne(
-    { "_id": mongoose.Types.ObjectId(request.params.id) },
-    { $set: { number: body.number } })
-    .then(resp => {
-      console.log(resp)
-      response.status(204).end()
-    })
-  } catch (e){
-    console.log(e)
-      response.status(400).send({ error: 'malformatted id' })
+    pNumber.updateOne(
+      { "_id": mongoose.Types.ObjectId(request.params.id) },
+      { $set: { number: body.number } })
+      .then(resp => {
+        if(resp.acknowledged === false){
+          response.status(400).json({error: "Validation error"})
+        }
+        response.status(204).end()
+      })
+  } catch (e) {
+    next(e)
   }
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   try {
     pNumber.deleteOne({ "_id": mongoose.Types.ObjectId(request.params.id) })
       .then(resp => {
         console.log(resp)
+        response.status(204).end()
       })
   } catch (e) {
-    console.log(e)
+    next(e)
   }
-  response.status(204).end()
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body
-
-  if (!body.name || !body.number) {
-    return res.status(400).json({
-      error: 'content missing'
-    })
-  }
 
   const number = new pNumber({
     name: body.name,
     number: body.number,
   })
 
-  number.save().then(response => {
-    res.json(response)
-  })
+  number.save()
+    .then(response => {
+      res.json(response)
+    })
+    .catch(error => next(error))
 })
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+  console.log(error.name)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  } else if (error.name === 'BSONTypeError') {
+    return response.status(400).json({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
